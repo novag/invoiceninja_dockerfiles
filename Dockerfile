@@ -29,6 +29,10 @@ RUN apt-get update \
     && docker-php-ext-configure gmp \
     && docker-php-ext-install iconv mbstring pdo pdo_mysql zip gd gmp opcache
 
+RUN curl -sS https://getcomposer.org/installer | php -- \
+    --install-dir=/usr/local/bin --filename=composer \
+    && composer global require hirak/prestissimo --no-plugins --no-scripts
+
 ENV PHANTOMJS phantomjs-2.1.1-linux-x86_64
 # Install PHANTOMJS
 RUN curl -o ${PHANTOMJS}.tar.bz2 -SL https://bitbucket.org/ariya/phantomjs/downloads/${PHANTOMJS}.tar.bz2 \
@@ -55,16 +59,15 @@ RUN { \
 
 ENV INVOICENINJA_VERSION 4.5.17
 
-RUN curl -o ninja.zip -SL https://download.invoiceninja.com/ninja-v${INVOICENINJA_VERSION}.zip \
-    && unzip -q ninja.zip -d /var/www/ \
-    && rm ninja.zip \
-    && mv /var/www/ninja /var/www/app  \
-    && mv /var/www/app/storage /var/www/app/docker-backup-storage  \
+RUN git clone https://github.com/novag/invoiceninja.git /var/www/ninja \
+    && mv /var/www/ninja /var/www/app \
+    && composer install -d /var/www/app --optimize-autoloader --no-dev \
+    && mv /var/www/app/storage /var/www/app/docker-backup-storage \
     && mv /var/www/app/public /var/www/app/docker-backup-public  \
     && mkdir -p /var/www/app/public/logo /var/www/app/storage \
     && touch /var/www/app/.env \
-    && chmod -R 755 /var/www/app/storage  \
-    && chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap /var/www/app/public/logo /var/www/app/.env /var/www/app/docker-backup-storage /var/www/app/docker-backup-public\
+    && chmod -R 755 /var/www/app/storage \
+    && chown -R www-data:www-data /var/www/app/storage /var/www/app/bootstrap /var/www/app/public/logo /var/www/app/.env /var/www/app/docker-backup-storage /var/www/app/docker-backup-public \
     && rm -rf /var/www/app/docs /var/www/app/tests /var/www/ninja
 
 ######
