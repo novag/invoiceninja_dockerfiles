@@ -1,7 +1,9 @@
-ARG PHP_IMAGE_TAG=7.2-fpm-stretch
-FROM php:${PHP_IMAGE_TAG}
+FROM php:7.3-fpm-buster
 
 LABEL maintainer="Samuel Laulhau <sam@lalop.co>"
+
+ARG REVISION=master
+ENV INVOICENINJA_VERSION=$REVISION
 
 #####
 # SYSTEM REQUIREMENT
@@ -20,18 +22,19 @@ ENV BUILD_DEPS \
         libxft-dev \
         libfreetype6 \
         libfontconfig1 \
-        libfontconfig1-dev
+        libfontconfig1-dev \
+        libzip-dev
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends $BUILD_DEPS \
     && ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/local/include/ \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-configure gmp \
-    && docker-php-ext-install iconv mbstring pdo pdo_mysql zip gd gmp opcache
+    && docker-php-ext-install iconv mbstring pdo pdo_mysql zip gd gmp opcache \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sS https://getcomposer.org/installer | php -- \
-    --install-dir=/usr/local/bin --filename=composer \
-    && composer self-update --1 \
+    --1 --install-dir=/usr/local/bin --filename=composer \
     && composer global require hirak/prestissimo --no-plugins --no-scripts
 
 ENV PHANTOMJS phantomjs-2.1.1-linux-x86_64
@@ -40,8 +43,7 @@ RUN curl -o ${PHANTOMJS}.tar.bz2 -SL https://bitbucket.org/ariya/phantomjs/downl
     && tar xvjf ${PHANTOMJS}.tar.bz2 \
     && rm ${PHANTOMJS}.tar.bz2 \
     && mv ${PHANTOMJS} /usr/local/share \
-    && ln -sf /usr/local/share/${PHANTOMJS}/bin/phantomjs /usr/local/bin \
-    && rm -rf /var/lib/apt/lists/*
+    && ln -sf /usr/local/share/${PHANTOMJS}/bin/phantomjs /usr/local/bin
 
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php
@@ -58,9 +60,8 @@ RUN { \
 # DOWNLOAD AND INSTALL INVOICE NINJA
 #####
 
-ENV INVOICENINJA_VERSION 4.5.17
-
-RUN git clone https://github.com/novag/invoiceninja.git /var/www/ninja \
+RUN echo $REVISION \
+    && git clone https://github.com/novag/invoiceninja.git /var/www/ninja \
     && mv /var/www/ninja /var/www/app \
     && composer install -d /var/www/app --optimize-autoloader --no-dev \
     && mv /var/www/app/storage /var/www/app/docker-backup-storage \

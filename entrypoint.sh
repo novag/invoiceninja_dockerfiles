@@ -32,9 +32,8 @@ fi
 
 # fix permission for mounted directories
 chown www-data:www-data /var/www/app/storage
-chown	 www-data:www-data /var/www/app/public/logo
+chown www-data:www-data /var/www/app/public/logo
 
-#php artisan optimize --force
 #php artisan migrate --force
 
 #if [ ! -e "/var/www/app/is-seeded" ]; then
