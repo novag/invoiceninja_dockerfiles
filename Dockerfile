@@ -43,7 +43,10 @@ RUN curl -o ${PHANTOMJS}.tar.bz2 -SL https://bitbucket.org/ariya/phantomjs/downl
     && tar xvjf ${PHANTOMJS}.tar.bz2 \
     && rm ${PHANTOMJS}.tar.bz2 \
     && mv ${PHANTOMJS} /usr/local/share \
-    && ln -sf /usr/local/share/${PHANTOMJS}/bin/phantomjs /usr/local/bin
+    && ln -sf /usr/local/share/${PHANTOMJS}/bin/phantomjs /usr/local/bin/phantomjs.bin \
+    && mkdir /usr/local/etc/phantomjs
+COPY phantomjs/phantomjs /usr/local/bin/phantomjs
+COPY phantomjs/openssl.cnf /usr/local/etc/phantomjs/openssl.cnf
 
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php

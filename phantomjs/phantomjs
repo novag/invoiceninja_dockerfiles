@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export OPENSSL_CONF=/usr/local/etc/phantomjs/openssl.cnf
+exec /usr/local/bin/phantomjs.bin "$@"
